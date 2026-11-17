@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Pede Aqui</title>
+    <script>
+      // GitHub Pages não faz reescrita de SPA: esta página devolve o caminho ao index.html.
+      var base = '/pede-aqui/';
+      var target = window.location.pathname.replace(base, '') + window.location.search + window.location.hash;
+      sessionStorage.setItem('pedeaqui-redirect', target);
+      window.location.replace(base);
+    </script>
+  </head>
+  <body>Redirecionando para o Pede Aqui…</body>
+</html>
