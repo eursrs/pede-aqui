@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { api, ApiError } from '../api'
 import type { Dish, Restaurant } from '../types'
 
@@ -127,8 +127,8 @@ export default function PublicMenuPage() {
       </div>
 
       <footer className="public-footer">
-        <span className="footer-brand">carda.io</span>
-        <span>É dono de restaurante? <Link to="/#solicitar">Solicite acesso ao aplicativo</Link></span>
+        <span className="footer-brand">Pede Aqui</span>
+        <span>Cardápio digital e pedidos pelo celular.</span>
       </footer>
     </main>
   )

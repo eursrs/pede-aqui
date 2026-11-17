@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="carda.io — cardápio digital e pedidos para restaurantes." />
-    <title>carda.io | Cardápio digital e pedidos</title>
+    <meta name="description" content="Pede Aqui — cardápio digital e pedidos para restaurantes." />
+    <title>Pede Aqui | Cardápio digital e pedidos</title>
     <script>
       (function () {
-        var redirect = sessionStorage.getItem('cardaio-redirect');
+        var redirect = sessionStorage.getItem('pedeaqui-redirect');
         if (redirect) {
-          sessionStorage.removeItem('cardaio-redirect');
-          history.replaceState(null, '', '/carda-io' + redirect);
+          sessionStorage.removeItem('pedeaqui-redirect');
+          history.replaceState(null, '', '/pede-aqui' + redirect);
         }
       })();
     </script>

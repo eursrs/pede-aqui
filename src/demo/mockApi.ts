@@ -16,7 +16,7 @@ type DemoState = {
   currentUserId: string | null
 }
 
-const STORAGE_KEY = 'cardaio-demo-state-v1'
+const STORAGE_KEY = 'pedeaqui-demo-state-v1'
 const uid = () => crypto.randomUUID()
 const dayAgo = (days: number) => new Date(Date.now() - days * 86400000).toISOString()
 
@@ -28,15 +28,15 @@ function slugify(value: string) {
 function seed(): DemoState {
   const now = new Date().toISOString()
   const admin: User & { password: string } = {
-    id: 'admin-demo', email: 'admin@carda.io', ownerName: 'Admin carda.io',
+    id: 'admin-demo', email: 'admin@pedeaqui.com', ownerName: 'Admin Pede Aqui',
     role: 'platform_admin', status: 'approved', createdAt: now, password: 'admin12345',
   }
   const owner: User & { password: string } = {
-    id: 'owner-demo', email: 'dono@carda.io', ownerName: 'Ana Souza',
+    id: 'owner-demo', email: 'dono@pedeaqui.com', ownerName: 'Ana Souza',
     role: 'owner', status: 'approved', createdAt: now, password: 'senha12345',
   }
   const pending: User & { password: string } = {
-    id: 'pending-demo', email: 'novo@carda.io', ownerName: 'Carlos Lima',
+    id: 'pending-demo', email: 'novo@pedeaqui.com', ownerName: 'Carlos Lima',
     role: 'owner', status: 'pending', createdAt: now, password: 'senha12345',
   }
   const restaurant: Restaurant = {

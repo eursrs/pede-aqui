@@ -3,7 +3,6 @@ import ProtectedRoute from './auth/ProtectedRoute'
 import { useAuth } from './auth/AuthContext'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
-import RegisterPage from './pages/RegisterPage'
 import OwnerDashboard from './pages/OwnerDashboard'
 import PlatformAdminPage from './pages/PlatformAdminPage'
 import PublicMenuPage from './pages/PublicMenuPage'
@@ -15,7 +14,7 @@ function Navbar() {
 
   return (
     <nav className="top-nav">
-      <Link className="brand" to="/">carda<span className="brand-accent">.io</span></Link>
+      <Link className="brand" to="/">Pede <span className="brand-accent">Aqui</span></Link>
       <div className="nav-links">
         {user ? (
           <>
@@ -25,7 +24,7 @@ function Navbar() {
         ) : (
           <>
             <Link to="/entrar">Entrar</Link>
-            <Link to="/#solicitar">Solicitar acesso</Link>
+            <Link to="/cardapio/cafe-da-ana">Ver cardápio</Link>
           </>
         )}
       </div>
@@ -41,7 +40,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/entrar" element={<LoginPage />} />
-        <Route path="/cadastro" element={<RegisterPage />} />
+        <Route path="/cadastro" element={<Navigate to="/" replace />} />
         <Route path="/painel" element={
           <ProtectedRoute role="owner"><OwnerDashboard /></ProtectedRoute>
         } />

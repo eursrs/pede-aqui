@@ -1,35 +1,26 @@
-import { useEffect } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
-import OwnerRequestForm from '../components/OwnerRequestForm'
 
 export default function LandingPage() {
   const { user } = useAuth()
-  const { hash } = useLocation()
   const painel = user?.role === 'platform_admin' ? '/admin' : '/painel'
-
-  useEffect(() => {
-    if (hash === '#solicitar') {
-      document.getElementById('solicitar')?.scrollIntoView({ behavior: 'smooth' })
-    }
-  }, [hash])
 
   return (
     <main className="page landing">
       <section className="hero">
-        <span className="eyebrow">carda.io</span>
+        <span className="eyebrow">Pede Aqui</span>
         <h1>Cardápio digital para o seu restaurante</h1>
         <p>
-          Crie seu cardápio online, receba pedidos pelo celular dos clientes e mantenha
-          tudo atualizado em um só lugar. Basta gerar o QR Code e colocar na mesa.
+          Monte seu cardápio, adicione pratos, fotos e preços, e compartilhe o link
+          ou o QR Code com seus clientes. Eles fazem o pedido direto pelo celular.
         </p>
         <div className="hero-actions">
           {user ? (
             <Link className="button primary" to={painel}>Ir para meu painel</Link>
           ) : (
             <>
-              <a className="button primary" href="#solicitar">Solicitar acesso</a>
-              <Link className="button secondary" to="/entrar">Já tenho conta</Link>
+              <Link className="button primary" to="/entrar">Entrar no painel</Link>
+              <Link className="button secondary" to="/cardapio/cafe-da-ana">Ver cardápio de exemplo</Link>
             </>
           )}
         </div>
@@ -38,8 +29,8 @@ export default function LandingPage() {
       <section className="steps">
         <article className="panel">
           <span className="step-number">1</span>
-          <h2>Solicite acesso</h2>
-          <p>Preencha o formulário abaixo e aguarde a aprovação da nossa equipe.</p>
+          <h2>Receba seu acesso</h2>
+          <p>O acesso é liberado pelo site de cadastro da equipe. Depois, entre com seu e-mail e senha.</p>
         </article>
         <article className="panel">
           <span className="step-number">2</span>
@@ -49,19 +40,8 @@ export default function LandingPage() {
         <article className="panel">
           <span className="step-number">3</span>
           <h2>Receba pedidos</h2>
-          <p>Os clientes escaneiam o QR Code, fazem o pedido e ele chega até você.</p>
+          <p>Gere o QR Code, coloque na mesa ou envie o link. Os clientes pedem e você recebe no painel.</p>
         </article>
-      </section>
-
-      <section id="solicitar" className="panel request-section">
-        <div className="request-heading">
-          <h2>Quer seu restaurante aqui?</h2>
-          <p className="muted">
-            Envie seus dados para solicitar acesso ao aplicativo. Assim que aprovarmos,
-            você recebe a liberação para entrar e criar seu cardápio.
-          </p>
-        </div>
-        <OwnerRequestForm />
       </section>
     </main>
   )

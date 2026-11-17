@@ -327,19 +327,7 @@ textarea { padding: 0.5rem 0.6rem; border: 1px solid #cbd2dc; border-radius: 8px
 }
 .footer-brand { display: block; font-weight: 800; color: #1f2430; letter-spacing: -0.03em; margin-bottom: 0.25rem; }
 
-/* Solicitação de acesso */
-.request-section {
-  scroll-margin-top: 4rem;
-  margin-top: 2rem;
-  display: grid;
-  grid-template-columns: 1fr 1.2fr;
-  gap: 2rem;
-  align-items: start;
-}
-.request-heading h2 { margin-top: 0; }
-.request-form { margin: 0; }
-.request-form > .muted { grid-column: 1 / -1; }
-.request-success { display: grid; gap: 0.75rem; justify-items: start; }
+/* Rodapé do cardápio público */
 .public-footer {
   text-align: center; margin-top: 3rem; padding-top: 1rem;
   border-top: 1px solid #e2e5ea; color: #5c6472; font-size: 0.9rem;
@@ -352,5 +340,4 @@ textarea { padding: 0.5rem 0.6rem; border: 1px solid #cbd2dc; border-radius: 8px
   .category-row-actions { margin-left: 0; }
   .category-add { flex-wrap: wrap; }
   .order-filters { flex-direction: column; align-items: flex-start; }
-  .request-section { grid-template-columns: 1fr; gap: 1rem; }
 }
