@@ -56,6 +56,21 @@ npm run dev
 
 Isso inicia a API (`localhost:3000`) e o site (`localhost:5173`). Use o endereço de rede mostrado pelo Vite (por exemplo `http://192.168.178.129:5173/admin`) no aparelho do dono para que o QR Code aponte para um endereço que o celular consiga acessar.
 
+### Conta de teste (acesso imediato ao painel)
+
+```bash
+npm run seed:test
+```
+
+Cria (ou libera) uma conta de dono já aprovada, com um restaurante, categorias, pratos, mesas e um pedido de exemplo:
+
+- **E-mail:** `teste@pedeaqui.com`
+- **Senha:** `teste12345`
+- **Painel:** `/entrar` → `/painel`
+- **Cardápio público:** `/cardapio/restaurante-de-teste`
+
+O comando pode ser repetido sem duplicar dados. Use `TEST_OWNER_EMAIL`, `TEST_OWNER_PASSWORD`, `TEST_OWNER_NAME` e `TEST_RESTAURANT_NAME` para personalizar. Troque a senha antes de expor o app publicamente.
+
 ### Criar o administrador da plataforma
 
 ```bash
@@ -85,6 +100,38 @@ VITE_DEMO=true npm run build   # base / para Vercel
 
 Contas da demo: `dono@pedeaqui.com` / `senha12345` (dono) e `admin@pedeaqui.com` / `admin12345` (admin). Cardápio público de exemplo: `/cardapio/cafe-da-ana`.
 
+## App Android (APK)
+
+O projeto Android gerado pelo Capacitor fica em `android/`. Ele abre o Pede Aqui dentro de um app instalável, usando o mesmo login, cardápio e pedidos do servidor real.
+
+### Gerar o APK sem Android Studio (GitHub Actions)
+
+O arquivo `android-build-workflow.yml.example` contém o workflow de build. Copie-o para `.github/workflows/build-android.yml` no GitHub (via interface web) e depois:
+
+1. Aba **Actions** → **Build Android APK** → **Run workflow**.
+2. Em `server_url`, informe o endereço onde o servidor está rodando (por exemplo `http://192.168.178.129:3000`). Use uma URL pública se o servidor estiver hospedado.
+3. Quando terminar, baixe o artefato `pede-aqui-apk`, extraia o `app-debug.apk` e instale no celular (é necessário permitir "instalar apps desconhecidos").
+
+> O workflow precisa ser adicionado pela interface do GitHub porque o token usado aqui não tem permissão `workflow` para criar arquivos em `.github/workflows/`.
+
+### Gerar pelo Android Studio
+
+```bash
+npm run build
+npx cap sync android
+npm run android:open
+```
+
+No Android Studio, clique em **Run** com um celular conectado ou emulador.
+
+Para apontar o app para outro servidor:
+
+```bash
+CAPACITOR_SERVER_URL=https://seu-servidor.com npm run android:sync
+```
+
+O celular precisa conseguir acessar essa URL. Em Wi-Fi, use o IP da máquina que roda `npm start`; para acessar de qualquer lugar, hospede o backend com banco persistente.
+
 ## Banco de dados
 
 SQLite em `data/menu.db`, criado automaticamente. Guarda usuários, sessões, restaurantes, pratos e pedidos. Senhas são armazenadas com hash scrypt; sessões usam cookie `HttpOnly`.
@@ -95,4 +142,5 @@ SQLite em `data/menu.db`, criado automaticamente. Guarda usuários, sessões, re
 - `npm run build` — checagem de tipos e build de produção
 - `npm run build:pages` — build estático demo para GitHub Pages
 - `npm start` — servidor de produção
+- `npm run seed:test` — cria a conta de teste aprovada com dados de exemplo
 - `npm run create-admin -- <email> <senha> [nome]` — cria administrador da plataforma
