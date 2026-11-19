@@ -380,9 +380,39 @@ app.post('/api/me/tables', (req, res) => {
   if (db.prepare('SELECT 1 FROM restaurant_tables WHERE restaurant_id = ? AND label = ?').get(restaurantId, label)) {
     return res.status(409).json({ error: 'Essa mesa já existe.' })
   }
-  const table = { id: randomUUID(), restaurant_id: restaurantId, label, created_at: new Date().toISOString() }
-  db.prepare('INSERT INTO restaurant_tables (id, restaurant_id, label, created_at) VALUES (@id, @restaurant_id, @label, @created_at)').run(table)
+  const count = Number(db.prepare('SELECT COUNT(*) AS total FROM restaurant_tables WHERE restaurant_id = ?').get(restaurantId).total)
+  const table = {
+    id: randomUUID(),
+    restaurant_id: restaurantId,
+    label,
+    x: 20 + (count % 4) * 96,
+    y: 20 + Math.floor(count / 4) * 96,
+    created_at: new Date().toISOString(),
+  }
+  db.prepare('INSERT INTO restaurant_tables (id, restaurant_id, label, x, y, created_at) VALUES (@id, @restaurant_id, @label, @x, @y, @created_at)').run(table)
   res.status(201).json(tableToPublic(table))
+})
+
+app.patch('/api/me/tables/:id', (req, res) => {
+  const existing = db.prepare('SELECT * FROM restaurant_tables WHERE id = ? AND restaurant_id = ?')
+    .get(req.params.id, req.session.restaurant.id)
+  if (!existing) return res.status(404).json({ error: 'Mesa não encontrada.' })
+
+  const label = String(req.body?.label ?? existing.label).trim().slice(0, 30) || existing.label
+  const restaurantId = req.session.restaurant.id
+  if (label !== existing.label &&
+      db.prepare('SELECT 1 FROM restaurant_tables WHERE restaurant_id = ? AND label = ?').get(restaurantId, label)) {
+    return res.status(409).json({ error: 'Essa mesa já existe.' })
+  }
+  const clamp = (value, fallback) => {
+    const number = Number(value)
+    return Number.isFinite(number) ? Math.max(0, Math.min(900, Math.round(number))) : fallback
+  }
+  const x = clamp(req.body?.x ?? existing.x, existing.x)
+  const y = clamp(req.body?.y ?? existing.y, existing.y)
+
+  db.prepare('UPDATE restaurant_tables SET label = ?, x = ?, y = ? WHERE id = ?').run(label, x, y, existing.id)
+  res.json(tableToPublic(db.prepare('SELECT * FROM restaurant_tables WHERE id = ?').get(existing.id)))
 })
 
 app.delete('/api/me/tables/:id', (req, res) => {
@@ -535,6 +565,7 @@ app.use('/api', (_req, res) => res.status(404).json({ error: 'Endpoint não enco
 
 const dist = path.join(root, 'dist')
 if (fs.existsSync(dist)) {
+  app.get('/app', (_req, res) => res.sendFile(path.join(dist, 'app.html')))
   app.use(express.static(dist))
   app.use((_req, res) => res.sendFile(path.join(dist, 'index.html')))
 }

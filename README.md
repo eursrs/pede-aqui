@@ -100,6 +100,17 @@ VITE_DEMO=true npm run build   # base / para Vercel
 
 Contas da demo: `dono@pedeaqui.com` / `senha12345` (dono) e `admin@pedeaqui.com` / `admin12345` (admin). Cardápio público de exemplo: `/cardapio/cafe-da-ana`.
 
+## App de gestão (`/app`)
+
+O APK abre `/app`, uma tela exclusiva para o dono — não mostra o site nem o cardápio público:
+
+- **Entrar** com e-mail e senha (conta de teste: `teste@pedeaqui.com` / `teste12345`)
+- **Cardápio**: criar/editar produtos, alterar preços, categorias e disponibilidade
+- **Mesas**: mapa do salão com mesas arrastáveis, rename/remoção (posições salvas no banco)
+- **Pedidos**: quadro Novo → Preparando → Pronto, atualizado a cada 4 segundos
+
+O cardápio público continua apenas no site (`/cardapio/:slug`); o app não traz link "Ver cardápio".
+
 ## App Android (APK)
 
 O projeto Android gerado pelo Capacitor fica em `android/`. Ele abre o Pede Aqui dentro de um app instalável, usando o mesmo login, cardápio e pedidos do servidor real.
@@ -142,5 +153,5 @@ SQLite em `data/menu.db`, criado automaticamente. Guarda usuários, sessões, re
 - `npm run build` — checagem de tipos e build de produção
 - `npm run build:pages` — build estático demo para GitHub Pages
 - `npm start` — servidor de produção
-- `npm run seed:test` — cria a conta de teste aprovada com dados de exemplo
+- `npm run seed:test` — cria a conta de teste aprovada com dados de exemplo e posições das mesas
 - `npm run create-admin -- <email> <senha> [nome]` — cria administrador da plataforma

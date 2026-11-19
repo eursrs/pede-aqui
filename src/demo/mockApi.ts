@@ -57,8 +57,8 @@ function seed(): DemoState {
     { id: 'dish-3', restaurant_id: restaurant.id, name: 'Bolo de chocolate', description: 'Fatia generosa', price: 18, category: 'Doces', available: true, image: '' },
   ]
   const tables: RestaurantTable[] = [
-    { id: 'table-1', label: '1', createdAt: now },
-    { id: 'table-2', label: '2', createdAt: now },
+    { id: 'table-1', label: '1', x: 20, y: 20, createdAt: now },
+    { id: 'table-2', label: '2', x: 116, y: 20, createdAt: now },
   ]
   const orders: Order[] = [
     {
@@ -265,8 +265,19 @@ export async function demoRequest<T>(url: string, init?: RequestInit): Promise<T
       requireOwner()
       if (!parts[3] && method === 'GET') return state.tables as T
       if (!parts[3] && method === 'POST') {
-        const table: RestaurantTable = { id: uid(), label: String(body.label), createdAt: new Date().toISOString() }
+        const table: RestaurantTable = {
+          id: uid(), label: String(body.label), x: 20 + state.tables.length * 24, y: 20,
+          createdAt: new Date().toISOString(),
+        }
         state.tables.push(table); save(); return table as T
+      }
+      const table = state.tables.find((t) => t.id === parts[3])
+      if (!table) fail('Mesa não encontrada.', 404)
+      if (method === 'PATCH') {
+        if (body.label !== undefined) table.label = String(body.label)
+        if (body.x !== undefined) table.x = Number(body.x)
+        if (body.y !== undefined) table.y = Number(body.y)
+        save(); return table as T
       }
       if (method === 'DELETE') {
         state.tables = state.tables.filter((t) => t.id !== parts[3]); save(); return undefined as T

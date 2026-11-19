@@ -6,7 +6,7 @@ on:
       server_url:
         description: 'URL do servidor do Pede Aqui (API + site)'
         required: true
-        default: 'http://192.168.178.129:3000'
+        default: 'http://192.168.178.129:3000/app'
 
 jobs:
   build:

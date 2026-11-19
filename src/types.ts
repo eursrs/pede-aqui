@@ -59,6 +59,8 @@ export type Order = {
 export type RestaurantTable = {
   id: string
   label: string
+  x: number
+  y: number
   createdAt: string
 }
 

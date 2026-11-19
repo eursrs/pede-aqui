@@ -72,6 +72,8 @@ db.exec(`
     id            TEXT PRIMARY KEY,
     restaurant_id TEXT NOT NULL REFERENCES restaurants(id) ON DELETE CASCADE,
     label         TEXT NOT NULL,
+    x             INTEGER NOT NULL DEFAULT 0,
+    y             INTEGER NOT NULL DEFAULT 0,
     created_at    TEXT NOT NULL,
     UNIQUE (restaurant_id, label)
   );
@@ -89,6 +91,14 @@ if (!dishColumns.includes('image')) {
 const orderColumns = db.prepare('PRAGMA table_info(orders)').all().map((column) => column.name)
 if (!orderColumns.includes('table_label')) {
   db.exec("ALTER TABLE orders ADD COLUMN table_label TEXT NOT NULL DEFAULT ''")
+}
+// Bancos antigos não tinham posição das mesas no mapa.
+const tableColumns = db.prepare('PRAGMA table_info(restaurant_tables)').all().map((column) => column.name)
+if (!tableColumns.includes('x')) {
+  db.exec('ALTER TABLE restaurant_tables ADD COLUMN x INTEGER NOT NULL DEFAULT 0')
+}
+if (!tableColumns.includes('y')) {
+  db.exec('ALTER TABLE restaurant_tables ADD COLUMN y INTEGER NOT NULL DEFAULT 0')
 }
 
 export function hashPassword(password) {
@@ -191,5 +201,11 @@ export function orderToPublic(row) {
 }
 
 export function tableToPublic(row) {
-  return { id: row.id, label: row.label, createdAt: row.created_at }
+  return {
+    id: row.id,
+    label: row.label,
+    x: row.x ?? 0,
+    y: row.y ?? 0,
+    createdAt: row.created_at,
+  }
 }

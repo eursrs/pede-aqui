@@ -73,11 +73,26 @@ for (const dish of seedDishes) {
   }
 }
 
-if (Number(db.prepare('SELECT COUNT(*) AS total FROM restaurant_tables WHERE restaurant_id = ?').get(restaurant.id).total) === 0) {
-  for (const label of ['1', '2']) {
-    db.prepare('INSERT INTO restaurant_tables (id, restaurant_id, label, created_at) VALUES (?, ?, ?, ?)')
-      .run(randomUUID(), restaurant.id, label, now)
+const tablePositions = [
+  { label: '1', x: 20, y: 20 },
+  { label: '2', x: 116, y: 20 },
+  { label: '3', x: 20, y: 116 },
+  { label: '4', x: 116, y: 116 },
+]
+const existingTables = db.prepare('SELECT * FROM restaurant_tables WHERE restaurant_id = ? ORDER BY created_at').all(restaurant.id)
+if (existingTables.length === 0) {
+  for (const position of tablePositions) {
+    db.prepare('INSERT INTO restaurant_tables (id, restaurant_id, label, x, y, created_at) VALUES (?, ?, ?, ?, ?, ?)')
+      .run(randomUUID(), restaurant.id, position.label, position.x, position.y, now)
   }
+} else {
+  // Mesas criadas antes do mapa ficaram na posição 0,0.
+  existingTables.forEach((table, index) => {
+    if (table.x === 0 && table.y === 0) {
+      const position = tablePositions[index % tablePositions.length]
+      db.prepare('UPDATE restaurant_tables SET x = ?, y = ? WHERE id = ?').run(position.x, position.y, table.id)
+    }
+  })
 }
 
 // Um pedido de exemplo para mostrar que o recebimento de pedidos funciona.
