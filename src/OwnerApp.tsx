@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent } from 'react'
+import { useCallback, useEffect, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
 import { api } from './api'
 import { useAuth } from './auth/AuthContext'
 import type { Category, Dish, Order, OrderStatus, RestaurantTable } from './types'
@@ -6,15 +6,79 @@ import type { Category, Dish, Order, OrderStatus, RestaurantTable } from './type
 const money = (value: number) => `R$ ${value.toFixed(2).replace('.', ',')}`
 const clock = (iso: string) => new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
 const clamp = (value: number, max: number) => Math.max(0, Math.min(max, value))
+const THEME_KEY = 'pede-aqui-theme'
+const TABLE_SIZE = 104
+
+function useTheme() {
+  const [dark, setDark] = useState(() => {
+    const saved = localStorage.getItem(THEME_KEY)
+    if (saved === 'dark' || saved === 'light') return saved === 'dark'
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false
+  })
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+    localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light')
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#181a1d' : '#d92d20')
+  }, [dark])
+
+  return { dark, toggle: () => setDark((value) => !value) }
+}
+
+type IconName = 'menu' | 'tables' | 'orders' | 'sun' | 'moon' | 'logout' | 'plus'
+
+function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
+  const common = {
+    width: size,
+    height: size,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.8,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+    'aria-hidden': 'true' as const,
+  }
+  switch (name) {
+    case 'menu':
+      return <svg {...common}><path d="M4 6h16M4 12h16M4 18h10" /><circle cx="19" cy="18" r="1" fill="currentColor" stroke="none" /></svg>
+    case 'tables':
+      return <svg {...common}><rect x="3" y="3" width="8" height="8" rx="2" /><rect x="13" y="3" width="8" height="8" rx="2" /><rect x="3" y="13" width="8" height="8" rx="2" /><rect x="13" y="13" width="8" height="8" rx="2" /></svg>
+    case 'orders':
+      return <svg {...common}><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" /><path d="M10 21h4" /></svg>
+    case 'sun':
+      return <svg {...common}><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
+    case 'moon':
+      return <svg {...common}><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z" /></svg>
+    case 'logout':
+      return <svg {...common}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="m16 17 5-5-5-5" /><path d="M21 12H9" /></svg>
+    case 'plus':
+      return <svg {...common}><path d="M12 5v14M5 12h14" /></svg>
+  }
+}
+
+function ThemeToggle({ dark, onToggle }: { dark: boolean; onToggle: () => void }) {
+  return (
+    <button
+      type="button"
+      className="icon-btn theme-toggle"
+      onClick={onToggle}
+      aria-label={dark ? 'Ativar modo claro' : 'Ativar modo escuro'}
+      title={dark ? 'Modo claro' : 'Modo escuro'}
+    >
+      <Icon name={dark ? 'sun' : 'moon'} />
+    </button>
+  )
+}
 
 type Tab = 'menu' | 'tables' | 'orders'
-const tabs: { id: Tab; label: string; icon: string }[] = [
-  { id: 'menu', label: 'Cardápio', icon: '☰' },
-  { id: 'tables', label: 'Mesas', icon: '▦' },
-  { id: 'orders', label: 'Pedidos', icon: '🔔' },
+const tabs: { id: Tab; label: string; icon: ReactNode }[] = [
+  { id: 'menu', label: 'Cardápio', icon: <Icon name="menu" /> },
+  { id: 'tables', label: 'Mesas', icon: <Icon name="tables" /> },
+  { id: 'orders', label: 'Pedidos', icon: <Icon name="orders" /> },
 ]
 
-function LoginScreen() {
+function LoginScreen({ dark, onToggleTheme }: { dark: boolean; onToggleTheme: () => void }) {
   const { login } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -37,7 +101,10 @@ function LoginScreen() {
   return (
     <div className="login-screen">
       <div className="login-card">
-        <div className="login-mark">PA</div>
+        <div className="login-card-top">
+          <div className="login-mark">PA</div>
+          <ThemeToggle dark={dark} onToggle={onToggleTheme} />
+        </div>
         <p className="login-eyebrow">Pede Aqui · Gestão</p>
         <h1>Entrar</h1>
         <p className="login-sub">Acesse o painel do seu restaurante.</p>
@@ -140,7 +207,7 @@ function MenuTab() {
           <h1>Cardápio</h1>
         </div>
         <button className="btn primary" onClick={() => setAdding((value) => !value)}>
-          {adding ? 'Fechar' : '+ Produto'}
+          {adding ? 'Fechar' : <><Icon name="plus" size={16} /> Novo produto</>}
         </button>
       </div>
       {error && <div className="alert error">{error}</div>}
@@ -269,8 +336,8 @@ function TablesTab() {
     const drag = dragRef.current
     const map = mapRef.current
     if (!drag || !map) return
-    const x = clamp(drag.originX + event.clientX - drag.startX, map.clientWidth - 80)
-    const y = clamp(drag.originY + event.clientY - drag.startY, map.clientHeight - 80)
+    const x = clamp(drag.originX + event.clientX - drag.startX, map.clientWidth - TABLE_SIZE)
+    const y = clamp(drag.originY + event.clientY - drag.startY, map.clientHeight - TABLE_SIZE)
     const next = tables.map((table) => table.id === drag.id ? { ...table, x, y } : table)
     positionsRef.current = next
     setTables(next)
@@ -318,30 +385,36 @@ function TablesTab() {
           <p className="eyebrow">Salão</p>
           <h1>Mapa de mesas</h1>
         </div>
-        <button className="btn primary" onClick={() => void addTable()}>+ Mesa</button>
+        <button className="btn primary" onClick={() => void addTable()}><Icon name="plus" size={16} /> Nova mesa</button>
       </div>
       {error && <div className="alert error">{error}</div>}
       <p className="hint">Arraste as mesas para organizar o salão. Toque em uma mesa para renomear ou remover.</p>
       <div className="map-card" ref={mapRef}>
+        <span className="map-label">Salão</span>
         {tables.map((table) => (
           <button
             key={table.id}
             className={`table-tile ${selectedId === table.id ? 'selected' : ''}`}
             style={{ left: table.x, top: table.y }}
+            aria-label={`Mesa ${table.label}`}
             onPointerDown={(event) => onPointerDown(event, table)}
             onPointerMove={onPointerMove}
             onPointerUp={() => void onPointerUp()}
           >
-            <span className="table-number">{table.label}</span>
+            <span className="chair chair--top" />
+            <span className="chair chair--right" />
+            <span className="chair chair--bottom" />
+            <span className="chair chair--left" />
+            <span className="tabletop"><span className="table-number">{table.label}</span></span>
           </button>
         ))}
-        {tables.length === 0 && <span className="map-empty">Nenhuma mesa ainda. Toque em + Mesa.</span>}
+        {tables.length === 0 && <span className="map-empty">Nenhuma mesa ainda. Toque em Nova mesa.</span>}
       </div>
       {selected && (
         <div className="card table-editor">
-          <h2>Editar mesa</h2>
+          <h2>Editar mesa {selected.label}</h2>
           <div className="inline-add">
-            <input value={labelDraft} onChange={(e) => setLabelDraft(e.target.value)} />
+            <input value={labelDraft} onChange={(e) => setLabelDraft(e.target.value)} aria-label="Número da mesa" />
             <button className="btn small" onClick={() => void saveLabel()}>Salvar</button>
             <button className="btn small danger" onClick={() => void removeSelected()}>Remover</button>
           </div>
@@ -444,13 +517,14 @@ function OrdersTab() {
 export default function OwnerApp() {
   const { user, restaurant, loading, logout } = useAuth()
   const [tab, setTab] = useState<Tab>('orders')
+  const { dark, toggle: toggleTheme } = useTheme()
 
   if (loading) return <div className="splash"><div className="login-mark">PA</div><p>Carregando…</p></div>
-  if (!user) return <LoginScreen />
+  if (!user) return <LoginScreen dark={dark} onToggleTheme={toggleTheme} />
   if (user.role === 'owner' && user.status !== 'approved') {
     return (
       <div className="splash">
-        <div className="login-mark">PA</div>
+        <div className="login-card-top"><div className="login-mark">PA</div><ThemeToggle dark={dark} onToggle={toggleTheme} /></div>
         <h1>{user.status === 'pending' ? 'Aguardando aprovação' : 'Acesso não aprovado'}</h1>
         <p>Seu cadastro ainda não está liberado para usar o app.</p>
         <button className="btn primary" onClick={() => void logout()}>Sair</button>
@@ -461,10 +535,11 @@ export default function OwnerApp() {
   return (
     <div className="app-shell">
       <header className="app-header">
-        <div className="app-brand"><span className="brand-mark">PA</span><span>Pede Aqui <small>Gestão</small></span></div>
+        <div className="app-brand"><span className="brand-mark">PA</span><span className="brand-text">Pede Aqui <small>Gestão</small></span></div>
         <div className="header-right">
           <span className="restaurant-name">{restaurant?.name ?? user.ownerName}</span>
-          <button className="logout" onClick={() => void logout()} aria-label="Sair">⏻</button>
+          <ThemeToggle dark={dark} onToggle={toggleTheme} />
+          <button className="icon-btn logout" onClick={() => void logout()} aria-label="Sair" title="Sair"><Icon name="logout" /></button>
         </div>
       </header>
       <main className="app-content">

@@ -106,8 +106,10 @@ O APK abre `/app`, uma tela exclusiva para o dono — não mostra o site nem o c
 
 - **Entrar** com e-mail e senha (conta de teste: `teste@pedeaqui.com` / `teste12345`)
 - **Cardápio**: criar/editar produtos, alterar preços, categorias e disponibilidade
-- **Mesas**: mapa do salão com mesas arrastáveis, rename/remoção (posições salvas no banco)
+- **Mesas**: mapa do salão com mesas desenhadas como mesas reais (tampo redondo e 4 cadeiras), arrastáveis, com rename/remoção (posições salvas no banco)
 - **Pedidos**: quadro Novo → Preparando → Pronto, atualizado a cada 4 segundos
+
+O app usa paleta vermelha, fontes locais (Plus Jakarta Sans para texto e Sora para títulos) e tem um botão de modo escuro no cabeçalho e na tela de login. A preferência fica salva no dispositivo.
 
 O cardápio público continua apenas no site (`/cardapio/:slug`); o app não traz link "Ver cardápio".
 

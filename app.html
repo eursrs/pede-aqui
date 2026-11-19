@@ -3,8 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#c2410c" />
+    <meta name="theme-color" content="#d92d20" />
     <title>Pede Aqui — Gestão</title>
+    <script>
+      // Aplica o tema antes da interface carregar para evitar um flash claro.
+      var saved = localStorage.getItem('pede-aqui-theme')
+      var dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches
+      document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+    </script>
   </head>
   <body>
     <div id="root"></div>
