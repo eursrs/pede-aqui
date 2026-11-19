@@ -74,6 +74,8 @@ db.exec(`
     label         TEXT NOT NULL,
     x             INTEGER NOT NULL DEFAULT 0,
     y             INTEGER NOT NULL DEFAULT 0,
+    shape         TEXT NOT NULL DEFAULT 'round',
+    seats         INTEGER NOT NULL DEFAULT 4,
     created_at    TEXT NOT NULL,
     UNIQUE (restaurant_id, label)
   );
@@ -99,6 +101,13 @@ if (!tableColumns.includes('x')) {
 }
 if (!tableColumns.includes('y')) {
   db.exec('ALTER TABLE restaurant_tables ADD COLUMN y INTEGER NOT NULL DEFAULT 0')
+}
+// Bancos antigos não tinham formato nem número de lugares.
+if (!tableColumns.includes('shape')) {
+  db.exec("ALTER TABLE restaurant_tables ADD COLUMN shape TEXT NOT NULL DEFAULT 'round'")
+}
+if (!tableColumns.includes('seats')) {
+  db.exec('ALTER TABLE restaurant_tables ADD COLUMN seats INTEGER NOT NULL DEFAULT 4')
 }
 
 export function hashPassword(password) {
@@ -206,6 +215,8 @@ export function tableToPublic(row) {
     label: row.label,
     x: row.x ?? 0,
     y: row.y ?? 0,
+    shape: row.shape === 'square' ? 'square' : 'round',
+    seats: [2, 4, 6].includes(row.seats) ? row.seats : 4,
     createdAt: row.created_at,
   }
 }

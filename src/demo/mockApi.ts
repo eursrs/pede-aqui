@@ -1,6 +1,6 @@
 import type {
   Category, Dish, Order, OrderStatus, PlatformRestaurant, Report,
-  Restaurant, RestaurantTable, User,
+  Restaurant, RestaurantTable, TableSeats, TableShape, User,
 } from '../types'
 
 export const isDemo = typeof window !== 'undefined'
@@ -57,8 +57,8 @@ function seed(): DemoState {
     { id: 'dish-3', restaurant_id: restaurant.id, name: 'Bolo de chocolate', description: 'Fatia generosa', price: 18, category: 'Doces', available: true, image: '' },
   ]
   const tables: RestaurantTable[] = [
-    { id: 'table-1', label: '1', x: 20, y: 20, createdAt: now },
-    { id: 'table-2', label: '2', x: 116, y: 20, createdAt: now },
+    { id: 'table-1', label: '1', x: 20, y: 20, shape: 'round', seats: 4, createdAt: now },
+    { id: 'table-2', label: '2', x: 144, y: 20, shape: 'square', seats: 4, createdAt: now },
   ]
   const orders: Order[] = [
     {
@@ -265,9 +265,11 @@ export async function demoRequest<T>(url: string, init?: RequestInit): Promise<T
       requireOwner()
       if (!parts[3] && method === 'GET') return state.tables as T
       if (!parts[3] && method === 'POST') {
+        const shape: TableShape = body.shape === 'square' ? 'square' : 'round'
+        const seats: TableSeats = [2, 4, 6].includes(Number(body.seats)) ? Number(body.seats) as TableSeats : 4
         const table: RestaurantTable = {
           id: uid(), label: String(body.label), x: 20 + state.tables.length * 24, y: 20,
-          createdAt: new Date().toISOString(),
+          shape, seats, createdAt: new Date().toISOString(),
         }
         state.tables.push(table); save(); return table as T
       }
@@ -277,6 +279,8 @@ export async function demoRequest<T>(url: string, init?: RequestInit): Promise<T
         if (body.label !== undefined) table.label = String(body.label)
         if (body.x !== undefined) table.x = Number(body.x)
         if (body.y !== undefined) table.y = Number(body.y)
+        if (body.shape !== undefined) table.shape = body.shape === 'square' ? 'square' : 'round'
+        if (body.seats !== undefined && [2, 4, 6].includes(Number(body.seats))) table.seats = Number(body.seats) as TableSeats
         save(); return table as T
       }
       if (method === 'DELETE') {

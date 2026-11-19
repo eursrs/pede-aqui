@@ -74,24 +74,27 @@ for (const dish of seedDishes) {
 }
 
 const tablePositions = [
-  { label: '1', x: 20, y: 20 },
-  { label: '2', x: 116, y: 20 },
-  { label: '3', x: 20, y: 116 },
-  { label: '4', x: 116, y: 116 },
+  { label: '1', x: 20, y: 20, shape: 'round', seats: 4 },
+  { label: '2', x: 144, y: 20, shape: 'square', seats: 4 },
+  { label: '3', x: 20, y: 144, shape: 'square', seats: 6 },
+  { label: '4', x: 144, y: 144, shape: 'round', seats: 2 },
 ]
 const existingTables = db.prepare('SELECT * FROM restaurant_tables WHERE restaurant_id = ? ORDER BY created_at').all(restaurant.id)
 if (existingTables.length === 0) {
   for (const position of tablePositions) {
-    db.prepare('INSERT INTO restaurant_tables (id, restaurant_id, label, x, y, created_at) VALUES (?, ?, ?, ?, ?, ?)')
-      .run(randomUUID(), restaurant.id, position.label, position.x, position.y, now)
+    db.prepare('INSERT INTO restaurant_tables (id, restaurant_id, label, x, y, shape, seats, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+      .run(randomUUID(), restaurant.id, position.label, position.x, position.y, position.shape, position.seats, now)
   }
 } else {
-  // Mesas criadas antes do mapa ficaram na posição 0,0.
+  // Mesas antigas ficaram na posição 0,0 e sem formato definido.
   existingTables.forEach((table, index) => {
+    const position = tablePositions[index % tablePositions.length]
     if (table.x === 0 && table.y === 0) {
-      const position = tablePositions[index % tablePositions.length]
       db.prepare('UPDATE restaurant_tables SET x = ?, y = ? WHERE id = ?').run(position.x, position.y, table.id)
     }
+    // Dados de demonstração com formatos e lugares variados.
+    db.prepare('UPDATE restaurant_tables SET shape = ?, seats = ? WHERE id = ?')
+      .run(position.shape, position.seats, table.id)
   })
 }
 

@@ -381,15 +381,20 @@ app.post('/api/me/tables', (req, res) => {
     return res.status(409).json({ error: 'Essa mesa já existe.' })
   }
   const count = Number(db.prepare('SELECT COUNT(*) AS total FROM restaurant_tables WHERE restaurant_id = ?').get(restaurantId).total)
+  const shape = req.body?.shape === 'square' ? 'square' : 'round'
+  const requestedSeats = Number(req.body?.seats)
+  const seats = [2, 4, 6].includes(requestedSeats) ? requestedSeats : 4
   const table = {
     id: randomUUID(),
     restaurant_id: restaurantId,
     label,
-    x: 20 + (count % 4) * 96,
-    y: 20 + Math.floor(count / 4) * 96,
+    x: 20 + (count % 4) * 124,
+    y: 20 + Math.floor(count / 4) * 124,
+    shape,
+    seats,
     created_at: new Date().toISOString(),
   }
-  db.prepare('INSERT INTO restaurant_tables (id, restaurant_id, label, x, y, created_at) VALUES (@id, @restaurant_id, @label, @x, @y, @created_at)').run(table)
+  db.prepare('INSERT INTO restaurant_tables (id, restaurant_id, label, x, y, shape, seats, created_at) VALUES (@id, @restaurant_id, @label, @x, @y, @shape, @seats, @created_at)').run(table)
   res.status(201).json(tableToPublic(table))
 })
 
@@ -410,8 +415,16 @@ app.patch('/api/me/tables/:id', (req, res) => {
   }
   const x = clamp(req.body?.x ?? existing.x, existing.x)
   const y = clamp(req.body?.y ?? existing.y, existing.y)
+  const shape = req.body?.shape === undefined
+    ? (existing.shape === 'square' ? 'square' : 'round')
+    : (req.body.shape === 'square' ? 'square' : 'round')
+  const requestedSeats = Number(req.body?.seats)
+  const seats = req.body?.seats === undefined
+    ? ([2, 4, 6].includes(existing.seats) ? existing.seats : 4)
+    : ([2, 4, 6].includes(requestedSeats) ? requestedSeats : 4)
 
-  db.prepare('UPDATE restaurant_tables SET label = ?, x = ?, y = ? WHERE id = ?').run(label, x, y, existing.id)
+  db.prepare('UPDATE restaurant_tables SET label = ?, x = ?, y = ?, shape = ?, seats = ? WHERE id = ?')
+    .run(label, x, y, shape, seats, existing.id)
   res.json(tableToPublic(db.prepare('SELECT * FROM restaurant_tables WHERE id = ?').get(existing.id)))
 })
 

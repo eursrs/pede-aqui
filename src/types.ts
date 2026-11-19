@@ -56,11 +56,16 @@ export type Order = {
   tableLabel: string
 }
 
+export type TableShape = 'round' | 'square'
+export type TableSeats = 2 | 4 | 6
+
 export type RestaurantTable = {
   id: string
   label: string
   x: number
   y: number
+  shape: TableShape
+  seats: TableSeats
   createdAt: string
 }
 

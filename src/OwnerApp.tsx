@@ -1,13 +1,19 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
 import { api } from './api'
 import { useAuth } from './auth/AuthContext'
-import type { Category, Dish, Order, OrderStatus, RestaurantTable } from './types'
+import type { Category, Dish, Order, OrderStatus, RestaurantTable, TableSeats, TableShape } from './types'
 
 const money = (value: number) => `R$ ${value.toFixed(2).replace('.', ',')}`
 const clock = (iso: string) => new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
 const clamp = (value: number, max: number) => Math.max(0, Math.min(max, value))
 const THEME_KEY = 'pede-aqui-theme'
-const TABLE_SIZE = 104
+const TABLE_SIZE = 116
+const SEAT_OPTIONS: TableSeats[] = [2, 4, 6]
+
+// Cadeiras distribuídas ao redor do tampo, começando no topo.
+function seatAngles(seats: TableSeats) {
+  return Array.from({ length: seats }, (_, index) => -Math.PI / 2 + (index * 2 * Math.PI) / seats)
+}
 
 function useTheme() {
   const [dark, setDark] = useState(() => {
@@ -292,11 +298,42 @@ function MenuTab() {
   )
 }
 
+function ShapePicker({ value, onChange }: { value: TableShape; onChange: (value: TableShape) => void }) {
+  return (
+    <div className="field-group">
+      <span className="field-label">Formato</span>
+      <div className="segmented" role="group" aria-label="Formato da mesa">
+        <button type="button" className={value === 'round' ? 'active' : ''} onClick={() => onChange('round')}>Redonda</button>
+        <button type="button" className={value === 'square' ? 'active' : ''} onClick={() => onChange('square')}>Quadrada</button>
+      </div>
+    </div>
+  )
+}
+
+function SeatPicker({ value, onChange }: { value: TableSeats; onChange: (value: TableSeats) => void }) {
+  return (
+    <div className="field-group">
+      <span className="field-label">Lugares</span>
+      <div className="segmented" role="group" aria-label="Número de lugares">
+        {SEAT_OPTIONS.map((seats) => (
+          <button type="button" key={seats} className={value === seats ? 'active' : ''} onClick={() => onChange(seats)}>{seats}</button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function TablesTab() {
   const [tables, setTables] = useState<RestaurantTable[]>([])
   const [error, setError] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [labelDraft, setLabelDraft] = useState('')
+  const [shapeDraft, setShapeDraft] = useState<TableShape>('round')
+  const [seatsDraft, setSeatsDraft] = useState<TableSeats>(4)
+  const [adding, setAdding] = useState(false)
+  const [newLabel, setNewLabel] = useState('')
+  const [newShape, setNewShape] = useState<TableShape>('round')
+  const [newSeats, setNewSeats] = useState<TableSeats>(4)
   const mapRef = useRef<HTMLDivElement>(null)
   const positionsRef = useRef<RestaurantTable[]>([])
   const dragRef = useRef<{ id: string; startX: number; startY: number; originX: number; originY: number } | null>(null)
@@ -316,9 +353,20 @@ function TablesTab() {
 
   const selected = tables.find((table) => table.id === selectedId) ?? null
 
-  async function addTable() {
+  function openAddForm() {
+    setNewLabel(String(tables.length + 1))
+    setNewShape('round')
+    setNewSeats(4)
+    setAdding(true)
+    setSelectedId(null)
+  }
+
+  async function addTable(event: FormEvent) {
+    event.preventDefault()
+    const label = newLabel.trim() || String(tables.length + 1)
     try {
-      await api.addTable(String(tables.length + 1))
+      await api.addTable(label, newShape, newSeats)
+      setAdding(false)
       await refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível adicionar a mesa.')
@@ -330,6 +378,9 @@ function TablesTab() {
     dragRef.current = { id: table.id, startX: event.clientX, startY: event.clientY, originX: table.x, originY: table.y }
     setSelectedId(table.id)
     setLabelDraft(table.label)
+    setShapeDraft(table.shape)
+    setSeatsDraft(table.seats)
+    setAdding(false)
   }
 
   function onPointerMove(event: ReactPointerEvent<HTMLButtonElement>) {
@@ -356,14 +407,14 @@ function TablesTab() {
     }
   }
 
-  async function saveLabel() {
+  async function saveTable() {
     if (!selected || !labelDraft.trim()) return
     try {
-      await api.updateTable(selected.id, { label: labelDraft.trim() })
+      await api.updateTable(selected.id, { label: labelDraft.trim(), shape: shapeDraft, seats: seatsDraft })
       setSelectedId(null)
       await refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Não foi possível renomear a mesa.')
+      setError(err instanceof Error ? err.message : 'Não foi possível salvar a mesa.')
     }
   }
 
@@ -385,10 +436,27 @@ function TablesTab() {
           <p className="eyebrow">Salão</p>
           <h1>Mapa de mesas</h1>
         </div>
-        <button className="btn primary" onClick={() => void addTable()}><Icon name="plus" size={16} /> Nova mesa</button>
+        <button className="btn primary" onClick={openAddForm}><Icon name="plus" size={16} /> Nova mesa</button>
       </div>
       {error && <div className="alert error">{error}</div>}
-      <p className="hint">Arraste as mesas para organizar o salão. Toque em uma mesa para renomear ou remover.</p>
+      <p className="hint">Arraste as mesas para organizar o salão. Toque em uma mesa para editar o formato, os lugares ou remover.</p>
+
+      {adding && (
+        <form className="card form-card" onSubmit={addTable}>
+          <h2>Nova mesa</h2>
+          <div className="form-grid">
+            <label className="wide">Número ou nome
+              <input value={newLabel} onChange={(e) => setNewLabel(e.target.value)} autoFocus />
+            </label>
+            <ShapePicker value={newShape} onChange={setNewShape} />
+            <SeatPicker value={newSeats} onChange={setNewSeats} />
+          </div>
+          <div className="form-actions">
+            <button className="btn primary" type="submit">Adicionar mesa</button>
+            <button className="btn" type="button" onClick={() => setAdding(false)}>Cancelar</button>
+          </div>
+        </form>
+      )}
       <div className="map-card" ref={mapRef}>
         <span className="map-label">Salão</span>
         {tables.map((table) => (
@@ -401,11 +469,18 @@ function TablesTab() {
             onPointerMove={onPointerMove}
             onPointerUp={() => void onPointerUp()}
           >
-            <span className="chair chair--top" />
-            <span className="chair chair--right" />
-            <span className="chair chair--bottom" />
-            <span className="chair chair--left" />
-            <span className="tabletop"><span className="table-number">{table.label}</span></span>
+            {seatAngles(table.seats).map((angle, index) => (
+              <span
+                key={index}
+                className="chair"
+                style={{
+                  left: `${50 + 38 * Math.cos(angle)}%`,
+                  top: `${50 + 38 * Math.sin(angle)}%`,
+                  transform: `translate(-50%, -50%) rotate(${angle * 180 / Math.PI + 90}deg)`,
+                }}
+              />
+            ))}
+            <span className={`tabletop ${table.shape}`}><span className="table-number">{table.label}</span></span>
           </button>
         ))}
         {tables.length === 0 && <span className="map-empty">Nenhuma mesa ainda. Toque em Nova mesa.</span>}
@@ -413,9 +488,15 @@ function TablesTab() {
       {selected && (
         <div className="card table-editor">
           <h2>Editar mesa {selected.label}</h2>
-          <div className="inline-add">
-            <input value={labelDraft} onChange={(e) => setLabelDraft(e.target.value)} aria-label="Número da mesa" />
-            <button className="btn small" onClick={() => void saveLabel()}>Salvar</button>
+          <div className="form-grid">
+            <label className="wide">Número ou nome
+              <input value={labelDraft} onChange={(e) => setLabelDraft(e.target.value)} aria-label="Número da mesa" />
+            </label>
+            <ShapePicker value={shapeDraft} onChange={setShapeDraft} />
+            <SeatPicker value={seatsDraft} onChange={setSeatsDraft} />
+          </div>
+          <div className="form-actions">
+            <button className="btn small primary" onClick={() => void saveTable()}>Salvar</button>
             <button className="btn small danger" onClick={() => void removeSelected()}>Remover</button>
           </div>
         </div>

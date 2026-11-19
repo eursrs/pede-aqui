@@ -1,5 +1,5 @@
 import { demoRequest, isDemo } from './demo/mockApi'
-import type { Category, Dish, Order, OrderStatus, PlatformRestaurant, Report, Restaurant, RestaurantTable, User } from './types'
+import type { Category, Dish, Order, OrderStatus, PlatformRestaurant, Report, Restaurant, RestaurantTable, TableSeats, TableShape, User } from './types'
 
 type ApiErrorBody = { error?: string; code?: string }
 
@@ -83,9 +83,9 @@ export const api = {
   deleteCategory: (id: string) =>
     request<void>(`/api/me/categories/${id}`, { method: 'DELETE' }),
   getTables: () => request<RestaurantTable[]>('/api/me/tables'),
-  addTable: (label: string) =>
-    request<RestaurantTable>('/api/me/tables', { method: 'POST', body: JSON.stringify({ label }) }),
-  updateTable: (id: string, patch: Partial<Pick<RestaurantTable, 'label' | 'x' | 'y'>>) =>
+  addTable: (label: string, shape: TableShape = 'round', seats: TableSeats = 4) =>
+    request<RestaurantTable>('/api/me/tables', { method: 'POST', body: JSON.stringify({ label, shape, seats }) }),
+  updateTable: (id: string, patch: Partial<Pick<RestaurantTable, 'label' | 'x' | 'y' | 'shape' | 'seats'>>) =>
     request<RestaurantTable>(`/api/me/tables/${id}`, { method: 'PATCH', body: JSON.stringify(patch) }),
   deleteTable: (id: string) =>
     request<void>(`/api/me/tables/${id}`, { method: 'DELETE' }),
