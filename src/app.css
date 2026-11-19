@@ -37,9 +37,11 @@
   --active-ink: var(--surface);
   --shadow: 0 12px 32px rgba(50, 30, 25, .07);
   --shadow-soft: 0 6px 18px rgba(50, 30, 25, .05);
-  --floor-base: #f7f1e8;
-  --floor-line: rgba(139, 103, 70, .16);
-  --floor-glow: rgba(255, 255, 255, .55);
+  --floor-grout: #d8c6b1;
+  --tile-a: #f8efe3;
+  --tile-b: #ead6c4;
+  --floor-glow: rgba(255, 255, 255, .38);
+  --floor-shade: rgba(105, 62, 32, .09);
   --chair-front: #c4382c;
   --chair-back: #8f291f;
   --chair-edge: rgba(90, 25, 20, .18);
@@ -74,9 +76,11 @@
   --active-ink: #08090a;
   --shadow: 0 16px 38px rgba(0, 0, 0, .55);
   --shadow-soft: 0 6px 20px rgba(0, 0, 0, .45);
-  --floor-base: #0a0b0c;
-  --floor-line: rgba(255, 255, 255, .045);
-  --floor-glow: rgba(255, 255, 255, .018);
+  --floor-grout: #1a1c1f;
+  --tile-a: #131416;
+  --tile-b: #0c0d0e;
+  --floor-glow: rgba(255, 255, 255, .035);
+  --floor-shade: rgba(0, 0, 0, .4);
   --chair-front: #5a2226;
   --chair-back: #2d1214;
   --chair-edge: rgba(229, 72, 77, .35);
@@ -324,13 +328,17 @@ h1, h2, .brand-text, .table-number { font-family: var(--font-display); }
   height: 480px;
   border-radius: 22px;
   border: 1px solid var(--line);
-  background-color: var(--floor-base);
+  background-color: var(--floor-grout);
   background-image:
-    repeating-linear-gradient(90deg, transparent 0 118px, var(--floor-line) 118px 120px),
-    repeating-linear-gradient(0deg, transparent 0 118px, var(--floor-line) 118px 120px),
-    repeating-linear-gradient(90deg, transparent 0 6px, var(--floor-glow) 6px 7px),
-    linear-gradient(125deg, var(--floor-glow), transparent 60%);
-  box-shadow: inset 0 0 70px rgba(0, 0, 0, .06);
+    radial-gradient(circle at 28% 22%, var(--floor-glow), transparent 42%),
+    radial-gradient(circle at 78% 82%, var(--floor-shade), transparent 48%),
+    repeating-linear-gradient(90deg, transparent 0 86px, var(--floor-grout) 86px 88px),
+    repeating-linear-gradient(0deg, transparent 0 86px, var(--floor-grout) 86px 88px),
+    conic-gradient(from 90deg at 50% 50%,
+      var(--tile-a) 0 25%, var(--tile-b) 25% 50%,
+      var(--tile-a) 50% 75%, var(--tile-b) 75% 100%);
+  background-size: 100% 100%, 100% 100%, 88px 88px, 88px 88px, 88px 88px;
+  box-shadow: inset 0 0 0 6px var(--floor-grout), inset 0 0 70px rgba(0, 0, 0, .06);
   overflow: hidden;
   touch-action: none;
 }
@@ -347,7 +355,7 @@ h1, h2, .brand-text, .table-number { font-family: var(--font-display); }
   opacity: .65;
   pointer-events: none;
 }
-[data-theme='dark'] .map-card { box-shadow: inset 0 0 90px rgba(0, 0, 0, .6); }
+[data-theme='dark'] .map-card { box-shadow: inset 0 0 0 6px var(--floor-grout), inset 0 0 90px rgba(0, 0, 0, .6); }
 .map-empty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 13px; }
 
 .table-tile {
